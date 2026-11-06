@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Big Data & Analytics — Quizizz Тренажер</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              DEFAULT: '#6C5CE7',
+              dark: '#5849C4',
+              light: '#EFEFD',
+            },
+            emeraldCustom: '#00B894',
+            coralCustom: '#FF7675',
+            amberCustom: '#FDCB6E',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #F4F6FB;
+      color: #1E293B;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+    .quiz-card {
+      box-shadow: 0 10px 30px -5px rgba(108, 92, 231, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+    }
+    .option-card {
+      transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+      border-bottom-width: 4px;
+    }
+    .option-card:hover:not(:disabled) {
+      transform: translateY(-2px);
+    }
+    .option-card:active:not(:disabled) {
+      transform: translateY(1px);
+      border-bottom-width: 2px;
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.92); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop {
+      animation: popIn 0.22s ease-out forwards;
+    }
+    @keyframes pulseStreak {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.12); }
+    }
+    .streak-pulse {
+      animation: pulseStreak 0.4s ease-in-out;
+    }
+    /* Custom scrollbar for question jump bar */
+    .no-scrollbar::-webkit-scrollbar {
+      height: 6px;
+    }
+    .no-scrollbar::-webkit-scrollbar-track {
+      background: #EEF2FF;
+      border-radius: 9999px;
+    }
+    .no-scrollbar::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Navigation Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="showScreen('home')">
+        <div class="w-10 h-10 rounded-xl bg-[#6C5CE7] flex items-center justify-center text-white font-extrabold text-xl shadow-md shadow-indigo-200">
+          Q
+        </div>
+        <div>
+          <h1 class="font-extrabold text-lg leading-tight text-slate-800">Big Data & Analytics</h1>
+          <p class="text-xs text-slate-500 font-medium">Интерактивный тренажер (50 вопросов)</p>
+        </div>
+      </div>
+
+      <!-- Mode Switcher Tabs -->
+      <div class="flex items-center bg-slate-100 p-1 rounded-xl">
+        <button id="nav-quiz-btn" onclick="showScreen('home')" class="px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all bg-white text-[#6C5CE7] shadow-sm">
+          🎮 Тренажер
+        </button>
+        <button id="nav-study-btn" onclick="showScreen('study')" class="px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all text-slate-600 hover:text-slate-900">
+          📚 Шпаргалка (Все 50)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-6">
+
+    <!-- ==================== SCREEN 1: HOME / MODE SELECTION ==================== -->
+    <section id="screen-home" class="space-y-6 animate-pop">
+      <!-- Hero Banner -->
+      <div class="bg-gradient-to-r from-[#6C5CE7] to-[#8E78FF] rounded-3xl p-6 sm:p-8 text-white shadow-lg shadow-indigo-200/60 relative overflow-hidden">
+        <div class="relative z-10 max-w-2xl space-y-3">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/20 backdrop-blur-sm">
+            ⚡ Режим подготовки к экзамену
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold leading-tight">
+            Готовьтесь к тесту в формате Quizizz!
+          </h2>
+          <p class="text-indigo-100 text-sm sm:text-base">
+            В исходном файле все правильные ответы стояли первыми. Здесь варианты ответов <strong>автоматически перемешиваются</strong> при каждом вопросе, чтобы вы реально запомнили правильные формулировки.
+          </p>
+        </div>
+        <div class="hidden md:flex absolute right-8 bottom-4 opacity-20 text-9xl font-black select-none">
+          50
+        </div>
+      </div>
+
+      <!-- Settings Bar -->
+      <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 quiz-card flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-6">
+          <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
+            <input type="checkbox" id="setting-shuffle-questions" checked class="w-5 h-5 rounded text-[#6C5CE7] focus:ring-[#6C5CE7] border-slate-300" />
+            <span class="text-sm font-semibold text-slate-700">🔀 Перемешать порядок вопросов</span>
+          </label>
+
+          <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
+            <input type="checkbox" id="setting-timer" class="w-5 h-5 rounded text-[#6C5CE7] focus:ring-[#6C5CE7] border-slate-300" />
+            <span class="text-sm font-semibold text-slate-700">⏱️ Таймер (30 сек на вопрос)</span>
+          </label>
+
+          <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
+            <input type="checkbox" id="setting-instant-next" class="w-5 h-5 rounded text-[#6C5CE7] focus:ring-[#6C5CE7] border-slate-300" />
+            <span class="text-sm font-semibold text-slate-700">⚡ Авто-переход при верном ответе</span>
+          </label>
+        </div>
+        <div class="text-xs text-slate-400 font-medium">
+          Клавиши: <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-slate-600">1-8</kbd> выбор, <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-slate-600">Enter</kbd> далее
+        </div>
+      </div>
+
+      <!-- Game Modes Grid -->
+      <div>
+        <h3 class="text-base font-bold text-slate-700 mb-3 px-1">Выберите режим тренировки:</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          
+          <!-- Mode: All 50 -->
+          <button onclick="startQuiz('all')" class="group text-left bg-white hover:border-[#6C5CE7] border-2 border-transparent rounded-2xl p-5 quiz-card transition-all flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="w-11 h-11 rounded-xl bg-indigo-50 text-[#6C5CE7] flex items-center justify-center text-xl font-bold group-hover:bg-[#6C5CE7] group-hover:text-white transition-colors">
+                  🏆
+                </span>
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-50 text-[#6C5CE7]">50 вопросов</span>
+              </div>
+              <h4 class="font-bold text-slate-800 text-lg group-hover:text-[#6C5CE7] transition-colors">Все 50 вопросов</h4>
+              <p class="text-xs text-slate-500 mt-1">Полный прогон по всей базе экзамена (1, 2 и 3 правильных ответа).</p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#6C5CE7]">
+              <span>Начать тренировку</span>
+              <span class="group-hover:translate-x-1 transition-transform">→</span>
+            </div>
+          </button>
+
+          <!-- Mode: Quick 15 -->
+          <button onclick="startQuiz('quick15')" class="group text-left bg-white hover:border-amber-500 border-2 border-transparent rounded-2xl p-5 quiz-card transition-all flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                  ⚡
+                </span>
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700">15 случайных</span>
+              </div>
+              <h4 class="font-bold text-slate-800 text-lg group-hover:text-amber-600 transition-colors">Быстрый раунд</h4>
+              <p class="text-xs text-slate-500 mt-1">Случайная выборка из 15 вопросов разных типов для быстрой разминки.</p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-amber-600">
+              <span>Быстрый старт</span>
+              <span class="group-hover:translate-x-1 transition-transform">→</span>
+            </div>
+          </button>
+
+          <!-- Mode: Part 1 (1 answer) -->
+          <button onclick="startQuiz('type1')" class="group text-left bg-white hover:border-emerald-500 border-2 border-transparent rounded-2xl p-5 quiz-card transition-all flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg font-extrabold group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                  1️⃣
+                </span>
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700">20 вопросов</span>
+              </div>
+              <h4 class="font-bold text-slate-800 text-lg group-hover:text-emerald-600 transition-colors">Часть 1: Один ответ</h4>
+              <p class="text-xs text-slate-500 mt-1">Вопросы №1–20. Только один верный вариант из 5 предложенных.</p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-emerald-600">
+              <span>Тренировать Часть 1</span>
+              <span class="group-hover:translate-x-1 transition-transform">→</span>
+            </div>
+          </button>
+
+          <!-- Mode: Part 2 (2 answers) -->
+          <button onclick="startQuiz('type2')" class="group text-left bg-white hover:border-blue-500 border-2 border-transparent rounded-2xl p-5 quiz-card transition-all flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg font-extrabold group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                  2️⃣
+                </span>
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700">15 вопросов</span>
+              </div>
+              <h4 class="font-bold text-slate-800 text-lg group-hover:text-blue-600 transition-colors">Часть 2: Два ответа</h4>
+              <p class="text-xs text-slate-500 mt-1">Вопросы №21–35 (Select TWO). Пропуски MAR/MNAR, выбросы, биннинг.</p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-blue-600">
+              <span>Тренировать Часть 2</span>
+              <span class="group-hover:translate-x-1 transition-transform">→</span>
+            </div>
+          </button>
+
+          <!-- Mode: Part 3 (3 answers) -->
+          <button onclick="startQuiz('type3')" class="group text-left bg-white hover:border-purple-500 border-2 border-transparent rounded-2xl p-5 quiz-card transition-all flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg font-extrabold group-hover:bg-purple-500 group-hover:text-white transition-colors">
+                  3️⃣
+                </span>
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-50 text-purple-700">15 вопросов</span>
+              </div>
+              <h4 class="font-bold text-slate-800 text-lg group-hover:text-purple-600 transition-colors">Часть 3: Три ответа</h4>
+              <p class="text-xs text-slate-500 mt-1">Вопросы №36–50 (Select THREE). Практика Pandas, очистка данных, экспорт.</p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-purple-600">
+              <span>Тренировать Часть 3</span>
+              <span class="group-hover:translate-x-1 transition-transform">→</span>
+            </div>
+          </button>
+
+          <!-- Mode: Mistakes -->
+          <button id="home-mistakes-btn" onclick="startQuiz('mistakes')" class="group text-left bg-white hover:border-rose-500 border-2 border-transparent rounded-2xl p-5 quiz-card transition-all flex flex-col justify-between opacity-60 cursor-not-allowed" disabled>
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl font-bold">
+                  🛠️
+                </span>
+                <span id="mistakes-count-badge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700">0 ошибок</span>
+              </div>
+              <h4 class="font-bold text-slate-800 text-lg">Работа над ошибками</h4>
+              <p class="text-xs text-slate-500 mt-1">Повторите только те вопросы, в которых вы допустили ошибку во время сессии.</p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-rose-600">
+              <span id="mistakes-cta-text">Сначала пройдите раунд</span>
+              <span>→</span>
+            </div>
+          </button>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 2: ACTIVE QUIZ GAMEPLAY ==================== -->
+    <section id="screen-quiz" class="hidden space-y-4 animate-pop">
+      
+      <!-- Top HUD Bar -->
+      <div class="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 quiz-card flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <button onclick="showScreen('home')" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition-colors" title="Выйти в меню">
+            ✕ Выйти
+          </button>
+          <div>
+            <div class="text-xs font-bold text-slate-400 uppercase tracking-wider" id="hud-mode-title">Все вопросы</div>
+            <div class="text-sm font-extrabold text-slate-800">
+              Вопрос <span id="hud-current-idx">1</span> из <span id="hud-total-q">50</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Pills -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          <!-- Timer Pill -->
+          <div id="hud-timer-pill" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-bold text-sm">
+            <span>⏱️</span>
+            <span id="hud-timer-val">30s</span>
+          </div>
+
+          <!-- Streak Pill -->
+          <div id="hud-streak-pill" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 font-extrabold text-sm">
+            <span>🔥 Серия:</span>
+            <span id="hud-streak-val">0</span>
+          </div>
+
+          <!-- Score Pill -->
+          <div class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-50 border border-indigo-100 text-[#6C5CE7] font-extrabold text-sm">
+            <span>💎</span>
+            <span id="hud-score-val">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress & Question Jump Pills -->
+      <div class="bg-white rounded-xl p-2.5 border border-slate-200/70 flex items-center gap-1.5 overflow-x-auto no-scrollbar" id="question-jump-bar">
+        <!-- Populated dynamically -->
+      </div>
+
+      <!-- Question Card -->
+      <div class="bg-white rounded-3xl p-5 sm:p-8 border border-slate-200/90 quiz-card space-y-6">
+        
+        <!-- Question Metadata Badges -->
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span id="q-id-badge" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 font-bold text-xs">
+              #1
+            </span>
+            <span id="q-type-badge" class="px-3 py-1 rounded-lg font-bold text-xs bg-indigo-50 text-[#6C5CE7]">
+              Выберите 1 правильный ответ
+            </span>
+          </div>
+
+          <span id="q-selection-counter" class="text-xs font-bold text-slate-500">
+            <!-- e.g. Выбрано: 1 из 2 -->
+          </span>
+        </div>
+
+        <!-- Question Text -->
+        <h2 id="q-text" class="text-lg sm:text-2xl font-extrabold text-slate-800 leading-snug">
+          Question text goes here?
+        </h2>
+
+        <!-- Options Grid -->
+        <div id="q-options-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Multi-Select Action / Feedback Bar -->
+        <div class="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-t border-slate-100">
+          <!-- Feedback Banner -->
+          <div id="q-feedback-box" class="hidden flex-1 rounded-2xl p-3.5 items-center gap-3">
+            <div id="q-feedback-icon" class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-lg shrink-0">
+              ✓
+            </div>
+            <div>
+              <div id="q-feedback-title" class="font-extrabold text-sm">Отлично! Правильный ответ</div>
+              <div id="q-feedback-sub" class="text-xs opacity-90">Так держать!</div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center justify-end gap-3 ml-auto w-full sm:w-auto">
+            <button id="btn-submit-answer" onclick="submitCurrentAnswer()" class="hidden w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-[#6C5CE7] hover:bg-[#5849C4] disabled:bg-slate-200 disabled:text-slate-400 text-white font-extrabold text-sm shadow-md shadow-indigo-200/70 transition-all">
+              Проверить ответ (Enter)
+            </button>
+
+            <button id="btn-next-question" onclick="nextQuestion()" class="hidden w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm shadow-md transition-all flex items-center justify-center gap-2">
+              <span>Далее</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 3: RESULTS & REVIEW ==================== -->
+    <section id="screen-results" class="hidden space-y-6 animate-pop">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 quiz-card text-center space-y-6">
+        <div class="w-20 h-20 rounded-3xl bg-indigo-50 text-[#6C5CE7] mx-auto flex items-center justify-center text-4xl shadow-inner" id="res-trophy">
+          🏆
+        </div>
+        <div class="space-y-1">
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800" id="res-headline">Раунд завершен!</h2>
+          <p class="text-slate-500 text-sm" id="res-subline">Отличная тренировка перед экзаменом</p>
+        </div>
+
+        <!-- Score Metrics Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto">
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/60">
+            <div class="text-xs font-bold text-slate-400 uppercase">Точность</div>
+            <div class="text-2xl font-extrabold text-[#6C5CE7] mt-1" id="res-accuracy">0%</div>
+          </div>
+          <div class="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200/60">
+            <div class="text-xs font-bold text-emerald-700 uppercase">Верно</div>
+            <div class="text-2xl font-extrabold text-emerald-600 mt-1" id="res-correct">0</div>
+          </div>
+          <div class="bg-rose-50/70 p-4 rounded-2xl border border-rose-200/60">
+            <div class="text-xs font-bold text-rose-700 uppercase">Ошибки</div>
+            <div class="text-2xl font-extrabold text-rose-600 mt-1" id="res-wrong">0</div>
+          </div>
+          <div class="bg-amber-50/70 p-4 rounded-2xl border border-amber-200/60">
+            <div class="text-xs font-bold text-amber-700 uppercase">Макс. серия</div>
+            <div class="text-2xl font-extrabold text-amber-600 mt-1" id="res-streak">0 🔥</div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+          <button onclick="restartSameMode()" class="px-6 py-3 rounded-xl bg-[#6C5CE7] hover:bg-[#5849C4] text-white font-bold text-sm shadow-md shadow-indigo-200 transition-all">
+            🔄 Пройти этот режим заново
+          </button>
+          <button id="res-retry-mistakes-btn" onclick="startQuiz('mistakes')" class="hidden px-6 py-3 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-sm shadow-md shadow-rose-200 transition-all">
+            🛠️ Проработать ошибки
+          </button>
+          <button onclick="showScreen('home')" class="px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm transition-all">
+            🏠 В главное меню
+          </button>
+        </div>
+      </div>
+
+      <!-- Detailed Breakdown -->
+      <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 quiz-card space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <h3 class="font-extrabold text-lg text-slate-800">Разбор ваших ответов</h3>
+          <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-bold">
+            <button onclick="filterReview('all')" id="rev-filter-all" class="px-3 py-1.5 rounded-lg bg-white text-slate-800 shadow-sm">Все</button>
+            <button onclick="filterReview('wrong')" id="rev-filter-wrong" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">Только ошибки</button>
+            <button onclick="filterReview('correct')" id="rev-filter-correct" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">Верные</button>
+          </div>
+        </div>
+        <div id="review-list" class="space-y-3">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 4: STUDY / CHEATSHEET MODE ==================== -->
+    <section id="screen-study" class="hidden space-y-5 animate-pop">
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 quiz-card space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-xl font-extrabold text-slate-800">📚 Полный справочник (50 вопросов)</h2>
+            <p class="text-xs text-slate-500">Используйте поиск по ключевым словам или фильтруйте по количеству ответов</p>
+          </div>
+          <label class="inline-flex items-center gap-2 cursor-pointer select-none bg-indigo-50 px-3.5 py-2 rounded-xl text-xs font-bold text-[#6C5CE7]">
+            <input type="checkbox" id="study-only-correct" checked onchange="renderStudyList()" class="w-4 h-4 rounded text-[#6C5CE7] focus:ring-[#6C5CE7]" />
+            <span>Показывать только правильные варианты</span>
+          </label>
+        </div>
+
+        <!-- Search & Filter Controls -->
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1">
+            <input
+              type="text"
+              id="study-search-input"
+              oninput="renderStudyList()"
+              placeholder="Поиск по вопросу или ответу (например: MAR, Pandas, IQR, bin)..."
+              class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#6C5CE7] focus:ring-2 focus:ring-indigo-100 outline-none text-sm"
+            />
+            <span class="absolute left-3.5 top-3 text-slate-400">🔍</span>
+          </div>
+          <select id="study-type-filter" onchange="renderStudyList()" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 outline-none focus:border-[#6C5CE7]">
+            <option value="all">Все части (50)</option>
+            <option value="1">Часть 1: 1 ответ (№1–20)</option>
+            <option value="2">Часть 2: 2 ответа (№21–35)</option>
+            <option value="3">Часть 3: 3 ответа (№36–50)</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="study-list-container" class="space-y-3">
+        <!-- Populated dynamically -->
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // =========================================================================
+    // RAW QUESTION BANK (50 Questions)
+    // Note: In the raw data below, the FIRST `required` items in `options` are the correct answers.
+    // =========================================================================
+    const RAW_QUESTIONS = [
+      // -------------------- PART 1: Single Choice (1-20) --------------------
+      {
+        id: 1,
+        required: 1,
+        q: "When are Big Data approaches especially useful?",
+        options: [
+          "When traditional tools cannot adequately meet the data's processing, storage, or analysis requirements.",
+          "When a dataset has more than ten rows, regardless of processing needs.",
+          "When all records originate from one small and consistently formatted source.",
+          "When a dataset contains only image files and no other formats.",
+          "When a spreadsheet includes text but can be processed normally."
+        ]
+      },
+      {
+        id: 2,
+        required: 1,
+        q: "What is the main purpose of data analysis?",
+        options: [
+          "To examine data for patterns and insights that support decisions.",
+          "To archive collected records without investigating patterns or relationships in them.",
+          "To predict every future event with certainty from historical observations.",
+          "To replace business questions with storage and file-management procedures.",
+          "To make all records identical before exploring meaningful differences."
+        ]
+      },
+      {
+        id: 3,
+        required: 1,
+        q: "How does data analytics differ from data analysis?",
+        options: [
+          "Data analytics covers a broader data lifecycle that includes data analysis.",
+          "Data analytics refers only to visualization, while analysis covers every other task.",
+          "Data analysis always includes governance, while analytics excludes any governance work.",
+          "Data analytics consists only of gathering records before analysis begins.",
+          "Data analysis and data analytics describe two completely unrelated disciplines."
+        ]
+      },
+      {
+        id: 4,
+        required: 1,
+        q: "Which question is answered by descriptive analytics?",
+        options: [
+          "How many products were sold last month?",
+          "Why did customers stop buying the product?",
+          "How many products will be sold next month?",
+          "Which action should increase future sales most?",
+          "Which future price should the company choose?"
+        ]
+      },
+      {
+        id: 5,
+        required: 1,
+        q: "Which question is answered by diagnostic analytics?",
+        options: [
+          "Why did sales decrease last month?",
+          "What was the total sales figure last month?",
+          "How many units are likely to sell next year?",
+          "Which delivery route should be selected tomorrow?",
+          "What price should be set to maximize future profit?"
+        ]
+      },
+      {
+        id: 6,
+        required: 1,
+        q: "Which task is an example of predictive analytics?",
+        options: [
+          "Estimating which customers are likely to leave next month.",
+          "Listing the number of customers who left last month.",
+          "Displaying yesterday's sales total.",
+          "Explaining the causes of last year's sales decline.",
+          "Recommending the best action to prevent customer loss."
+        ]
+      },
+      {
+        id: 7,
+        required: 1,
+        q: "What is a main purpose of business intelligence?",
+        options: [
+          "To use enterprise data to understand and improve business performance.",
+          "To replace customer information with images instead of analyzing business records.",
+          "To gather enterprise records without relating them to operational decisions.",
+          "To prevent managers from accessing dashboards and performance reports.",
+          "To keep departmental performance measures unrelated and impossible to compare."
+        ]
+      },
+      {
+        id: 8,
+        required: 1,
+        q: "What is a key performance indicator or KPI?",
+        options: [
+          "A measurable indicator linked to a business goal.",
+          "A numerical measurement used only to describe a computer's storage capacity.",
+          "A statistical procedure that automatically removes unusual values from data.",
+          "A technical metric that must be unrelated to organizational objectives.",
+          "A measurement used only for tracking the number of available datasets."
+        ]
+      },
+      {
+        id: 9,
+        required: 1,
+        q: "Which list contains the Five Vs described?",
+        options: [
+          "Volume, velocity, variety, veracity, and value.",
+          "Volume, version, visibility, voltage, and value.",
+          "Velocity, validity, vision, voting, and version.",
+          "Variety, volume, virtualization, voice, and video.",
+          "Value, veracity, vocabulary, voltage, and vision."
+        ]
+      },
+      {
+        id: 10,
+        required: 1,
+        q: "A business stores billions of transaction records. Which Big Data characteristic is most directly illustrated?",
+        options: [
+          "Volume.",
+          "Velocity.",
+          "Variety.",
+          "Veracity.",
+          "Value."
+        ]
+      },
+      {
+        id: 11,
+        required: 1,
+        q: "Sensors send new readings every second and require rapid processing. Which characteristic is most directly illustrated?",
+        options: [
+          "Velocity.",
+          "Veracity.",
+          "Variety.",
+          "Value.",
+          "Volume alone, regardless of arrival speed."
+        ]
+      },
+      {
+        id: 12,
+        required: 1,
+        q: "A company combines database tables, images, audio, and JSON files. Which characteristic is most directly illustrated?",
+        options: [
+          "Variety.",
+          "Velocity.",
+          "Veracity.",
+          "Value.",
+          "Volume alone, regardless of format."
+        ]
+      },
+      {
+        id: 13,
+        required: 1,
+        q: "Which Big Data characteristic concerns the quality and trustworthiness of data?",
+        options: [
+          "Veracity.",
+          "Velocity.",
+          "Volume.",
+          "Variety.",
+          "Value."
+        ]
+      },
+      {
+        id: 14,
+        required: 1,
+        q: "Which is a clear example of unstructured data?",
+        options: [
+          "An audio recording of a conversation.",
+          "A relational database table containing product identifiers and their listed prices.",
+          "A structured spreadsheet containing student identifiers and numerical age values.",
+          "A fixed-schema database table listing invoice numbers and payment amounts.",
+          "A structured sales table containing dates, store identifiers, and revenue totals."
+        ]
+      },
+      {
+        id: 15,
+        required: 1,
+        q: "Which pair is commonly used to represent semi-structured data?",
+        options: [
+          "XML and JSON.",
+          "MP3 and WAV files that primarily store recorded audio waveforms.",
+          "JPEG and PNG files that primarily store digital photographs.",
+          "MP4 and AVI files that primarily store video recordings.",
+          "Printed diagrams and drawings without a consistent machine-readable record structure."
+        ]
+      },
+      {
+        id: 16,
+        required: 1,
+        q: "Which item is metadata for a digital photograph?",
+        options: [
+          "Its file size and image resolution.",
+          "The objects and people actually depicted within the photograph itself.",
+          "The balance recorded in an unrelated customer's banking account.",
+          "A predicted outcome generated from an unrelated business dataset.",
+          "The monthly sales total reported by an unrelated retail store."
+        ]
+      },
+      {
+        id: 17,
+        required: 1,
+        q: "In the ETI case study, which problem contributed to declining profitability?",
+        options: [
+          "Increasing fraudulent claims and the payments associated with them.",
+          "Insurance claims were entirely absent, leaving the company without any payments.",
+          "All policyholders stopped communicating through digital customer-service channels.",
+          "The company lacked every operational system needed to record insurance claims.",
+          "All insurance policies matched customer needs and eliminated potential financial losses."
+        ]
+      },
+      {
+        id: 18,
+        required: 1,
+        q: "Why is data collection a critical step in an analytics project?",
+        options: [
+          "The quality and quantity of collected data affect the reliability of later analysis.",
+          "Collecting more records guarantees that all later statistical conclusions are correct.",
+          "Data quality becomes relevant only after an analytical model is deployed.",
+          "Every data source provides equally complete, consistent, and error-free records.",
+          "Increasing dataset size automatically eliminates all sources of selection bias."
+        ]
+      },
+      {
+        id: 19,
+        required: 1,
+        q: "Which situation illustrates inconsistent formatting?",
+        options: [
+          "The same category is entered as Male, male, and MALE.",
+          "Different students have different ages that are valid for their own records.",
+          "A dataset includes names and scores stored in separate, appropriate columns.",
+          "Two products have different prices because their actual costs are different.",
+          "Two cities have different population totals because their populations differ."
+        ]
+      },
+      {
+        id: 20,
+        required: 1,
+        q: "A random device fault loses readings independently of all measured and unmeasured values. Which missingness type does this illustrate?",
+        options: [
+          "Missing Completely at Random or MCAR.",
+          "It depends on a recorded variable, such as the participant's age.",
+          "It depends on the unobserved value, such as undisclosed income.",
+          "It occurs because the dataset contains duplicated complete records.",
+          "Missingness results from using different measurement units across source files."
+        ]
+      },
+
+      // -------------------- PART 2: Select TWO (21-35) --------------------
+      {
+        id: 21,
+        required: 2,
+        q: "Select TWO correct statements about MAR missingness.",
+        options: [
+          "Missingness can depend on observed variables such as age.",
+          "After accounting for observed variables, missingness does not depend on the missing value itself.",
+          "It must be independent of every variable recorded in the dataset.",
+          "Missingness becomes MAR whenever the missing values are replaced with averages.",
+          "Missingness under MAR depends only on the unobserved value after adjustment.",
+          "Missingness is MAR only when every record has the same missing fields."
+        ]
+      },
+      {
+        id: 22,
+        required: 2,
+        q: "Select TWO correct statements about MNAR missingness.",
+        options: [
+          "The probability of missingness may depend on the unobserved value itself.",
+          "People with higher incomes withholding income information because of their income is an example.",
+          "It must be independent of both observed and unobserved values.",
+          "It is MNAR only when the missing entries are randomly distributed.",
+          "Missingness under MNAR can always be explained entirely by recorded variables.",
+          "Missingness becomes MNAR whenever a column contains duplicate observations."
+        ]
+      },
+      {
+        id: 23,
+        required: 2,
+        q: "Select TWO potential disadvantages of deleting rows containing missing values.",
+        options: [
+          "Useful observations may be lost.",
+          "The remaining dataset may become biased.",
+          "Removing incomplete rows always increases the total number of usable observations.",
+          "Deleting incomplete rows ensures the remaining sample represents every population group.",
+          "Removing incomplete rows automatically corrects measurement errors in complete records.",
+          "Deleting incomplete rows guarantees that no missing values remain in other datasets."
+        ]
+      },
+      {
+        id: 24,
+        required: 2,
+        q: "Select TWO correct statements about data imputation.",
+        options: [
+          "Imputation fills missing entries with estimated or selected values.",
+          "Median imputation is one possible method for missing numerical values.",
+          "It replaces every observed value with a value predicted by a model.",
+          "It always removes rows that contain at least one missing entry.",
+          "It guarantees that every estimated replacement equals the unknown true value.",
+          "Imputation can only be performed on text columns, not numerical columns."
+        ]
+      },
+      {
+        id: 25,
+        required: 2,
+        q: "Select TWO correct statements about the median in imputation.",
+        options: [
+          "The median is generally less affected by extreme values than the mean.",
+          "The median can be used to fill missing numerical entries.",
+          "The median is always equal to the arithmetic mean of observed values.",
+          "The median is calculated by selecting the largest value in the column.",
+          "Median imputation requires replacing all nonmissing values with the same number.",
+          "The median is more sensitive to extreme values than the arithmetic mean."
+        ]
+      },
+      {
+        id: 26,
+        required: 2,
+        q: "Select TWO correct statements about k-nearest neighbors imputation.",
+        options: [
+          "It uses similar records to estimate missing values.",
+          "It compares available attributes to identify neighboring records.",
+          "It always fills missing entries with zero, regardless of nearby records.",
+          "It identifies neighbors using only the original row numbers.",
+          "It selects the most distant records rather than the nearest records.",
+          "KNN imputation can estimate values without considering any observed attributes."
+        ]
+      },
+      {
+        id: 27,
+        required: 2,
+        q: "Select TWO correct statements about noise in measured data.",
+        options: [
+          "Noise may involve random errors or fluctuations.",
+          "Noise can obscure meaningful patterns in observations.",
+          "Noise always represents a meaningful change in the phenomenon being measured.",
+          "Noise occurs only when a dataset contains textual rather than numerical columns.",
+          "Noise is defined as the number of observations stored in each dataset.",
+          "Noise is always removed perfectly by replacing missing values with zeros."
+        ]
+      },
+      {
+        id: 28,
+        required: 2,
+        q: "Select TWO correct statements about outliers.",
+        options: [
+          "Outliers may be genuine unusual observations.",
+          "Outliers should be investigated before deciding to remove or modify them.",
+          "Every outlier is necessarily an error and must be deleted before analysis.",
+          "Outliers can only occur in categorical columns and never in numerical measurements.",
+          "Outliers have no possible effect on means, standard deviations, or fitted models.",
+          "All observations beyond an outlier fence are automatically fraudulent records."
+        ]
+      },
+      {
+        id: 29,
+        required: 2,
+        q: "Select TWO correct statements about smoothing by binning.",
+        options: [
+          "Binning can reduce local fluctuations in numerical data.",
+          "Values in a bin can be replaced by the bin mean.",
+          "Mean smoothing preserves each original value exactly within every numerical bin.",
+          "Binning removes fluctuations by converting all numerical values into text labels.",
+          "Mean smoothing replaces each bin's values with the overall dataset maximum.",
+          "Binning guarantees that the smoothed dataset contains no genuine outliers."
+        ]
+      },
+      {
+        id: 30,
+        required: 2,
+        q: "Select TWO correct statements about equal-depth and equal-width binning.",
+        options: [
+          "Equal-depth bins aim for similar numbers of records.",
+          "Equal-width bins cover equal numerical intervals.",
+          "Equal-depth bins always span numerical intervals of exactly the same width.",
+          "Equal-width bins must contain exactly the same number of observations each.",
+          "Equal-depth binning requires every observation to have a distinct numerical value.",
+          "Equal-width binning divides records by alphabetical order instead of value ranges."
+        ]
+      },
+      {
+        id: 31,
+        required: 2,
+        q: "For the bin [2, 4, 9], select TWO correct statements about smoothing by its mean.",
+        options: [
+          "The bin mean is 5.",
+          "After mean smoothing, the values become 5, 5, 5.",
+          "The bin mean is 4 because the middle observation is the median.",
+          "After mean smoothing, the bin becomes 2, 2, 2 using its minimum.",
+          "After mean smoothing, the bin becomes 9, 9, 9 using its maximum.",
+          "The bin mean is 15 because the three observations sum to 15."
+        ]
+      },
+      {
+        id: 32,
+        required: 2,
+        q: "Given Q1 = 10 and Q3 = 18, select TWO correct statements about the upper outlier fence.",
+        options: [
+          "The interquartile range (IQR) is 8.",
+          "The upper fence Q3 + 1.5 × IQR is 30.",
+          "The IQR is 28 because it is calculated by adding Q1 and Q3.",
+          "The upper fence is 18 because it is always equal to Q3.",
+          "The upper fence is 22 because it uses half the interquartile range.",
+          "The IQR is 1.8 because it is calculated by dividing Q3 by Q1."
+        ]
+      },
+      {
+        id: 33,
+        required: 2,
+        q: "Select TWO correct statements about data integration.",
+        options: [
+          "It combines information from multiple sources.",
+          "It aims to create a coherent view of the combined data.",
+          "It requires keeping all source datasets isolated from one another permanently.",
+          "It automatically removes every conflict without any validation or transformation.",
+          "Integration is defined as replacing all source records with a single average.",
+          "Integration requires converting every source into an image before combining data."
+        ]
+      },
+      {
+        id: 34,
+        required: 2,
+        q: "Select TWO correct statements about entity resolution.",
+        options: [
+          "It identifies records referring to the same real-world entity.",
+          "It can help match customer records across different data sources.",
+          "It identifies matches using only the length of each record's filename.",
+          "Entity resolution assumes all records with identical grades represent the same person.",
+          "It always merges records whenever any one field has the same value.",
+          "Entity resolution focuses on ranking charts rather than matching real-world identities."
+        ]
+      },
+      {
+        id: 35,
+        required: 2,
+        q: "Select TWO correct statements about duplicate student records.",
+        options: [
+          "Identical grades alone do not prove that two records belong to the same student.",
+          "Student IDs can help determine whether apparently matching records are duplicates.",
+          "Two students with identical grades must always be the same individual.",
+          "Matching course marks prove that one of the two records is incorrect.",
+          "Student identifiers are irrelevant when deciding whether two records describe one person.",
+          "All students sharing the same grade pattern should be merged automatically."
+        ]
+      },
+
+      // -------------------- PART 3: Select THREE (36-50) --------------------
+      {
+        id: 36,
+        required: 3,
+        q: "Select THREE correct statements about comparing distances stored in miles and kilometers.",
+        options: [
+          "Units should be standardized before comparing distances.",
+          "A conversion factor can express both values in the same unit.",
+          "Numerically different values can represent the same physical distance.",
+          "Distances can be compared directly whenever their numerical values are both positive.",
+          "A larger numerical distance always means a longer distance regardless of units.",
+          "Values recorded in miles should be discarded whenever kilometers are also available.",
+          "Different measurement units prove that the records refer to different locations.",
+          "Unit conversion is unnecessary when both measurements are stored as decimals."
+        ]
+      },
+      {
+        id: 37,
+        required: 3,
+        q: "Select THREE correct statements about reading a CSV file using Pandas.",
+        options: [
+          "pd.read_csv(\"Dataset.csv\") loads a CSV file into a DataFrame.",
+          "Pandas is commonly imported using import pandas as pd.",
+          "The file path passed to read_csv identifies the CSV to load.",
+          "pd.to_csv('Dataset.csv') is the usual command for importing CSV data.",
+          "pd.read_excel('Dataset.csv') is required whenever a file has a CSV extension.",
+          "pd.read_csv automatically corrects every invalid or missing field during import.",
+          "pd.head('Dataset.csv') reads a CSV file and returns a complete DataFrame.",
+          "The read_csv function trains a machine-learning model while importing the file."
+        ]
+      },
+      {
+        id: 38,
+        required: 3,
+        q: "Select THREE correct statements about counting missing values in Pandas.",
+        options: [
+          "df.isna().sum() counts missing entries by column.",
+          "df.isnull().sum() can perform the same count.",
+          "The resulting counts help identify columns with missing data.",
+          "df.shape returns the missing-value count for each individual DataFrame column.",
+          "df.head() counts all missing cells rather than displaying the first rows.",
+          "df.columns reports the number of missing values stored in each column.",
+          "df.isna().sum() removes missing records from the original DataFrame automatically.",
+          "df.isnull().sum() replaces all missing values with the column mean automatically."
+        ]
+      },
+      {
+        id: 39,
+        required: 3,
+        q: "Select THREE correct statements about df.drop_duplicates().",
+        options: [
+          "By default it removes repeated complete rows.",
+          "By default it keeps the first occurrence of a duplicate row.",
+          "It can reduce redundant records in a DataFrame.",
+          "drop_duplicates removes any rows sharing just one column value.",
+          "drop_duplicates keeps only repeated rows and removes unique records.",
+          "By default, drop_duplicates removes every column that contains a missing value.",
+          "By default, drop_duplicates retains the last occurrence of each repeated row.",
+          "By default, drop_duplicates changes repeated values into the column median."
+        ]
+      },
+      {
+        id: 40,
+        required: 3,
+        q: "Select THREE correct statements about df[\"country\"].str.strip().",
+        options: [
+          "It removes leading whitespace in string values.",
+          "It removes trailing whitespace in string values.",
+          "It can help standardize country names with accidental surrounding spaces.",
+          "it removes all spaces between words within every country name.",
+          "it converts country names into standardized three-letter country codes.",
+          "str.strip() changes all country names into uppercase letters by default.",
+          "str.strip() automatically translates country names written in different languages.",
+          "str.strip() removes every row whose country value contains any whitespace."
+        ]
+      },
+      {
+        id: 41,
+        required: 3,
+        q: "Select THREE correct statements about value_counts(dropna=False).",
+        options: [
+          "It counts occurrences of distinct values.",
+          "It includes missing values in the counts.",
+          "It can be used to inspect the frequency of categories in a column.",
+          "Setting dropna=False excludes missing values from the frequency table.",
+          "value_counts returns only the categories that occur exactly one time.",
+          "it replaces every missing category with the most frequent category.",
+          "value_counts converts every text category into a continuous numerical measurement.",
+          "value_counts automatically removes duplicate records before computing frequencies."
+        ]
+      },
+      {
+        id: 42,
+        required: 3,
+        q: "Select THREE correct statements about pd.to_numeric(errors=\"coerce\").",
+        options: [
+          "Unparseable strings can become NaN.",
+          "Valid numeric strings can be converted into numbers.",
+          "It is useful when cleaning a column containing mixed numeric and invalid text.",
+          "Unparseable text is always converted to numerical zero.",
+          "Invalid text is replaced by the column's mean automatically.",
+          "With errors='coerce', all numeric strings remain unchanged as text values.",
+          "With errors='coerce', the entire DataFrame is deleted if conversion fails.",
+          "With errors='coerce', invalid text is converted into its character count."
+        ]
+      },
+      {
+        id: 43,
+        required: 3,
+        q: "Select THREE correct statements about marking math scores outside 0–100 as missing.",
+        options: [
+          "A score of 125 falls outside the allowed range.",
+          "The score 125 can be replaced with pd.NA for later treatment.",
+          "Checking valid score ranges can reveal invalid data entries.",
+          "A score of 125 is valid because it is greater than the minimum of zero.",
+          "A score of 125 is automatically reduced to 100 without an explicit rule.",
+          "A score of 125 is automatically replaced with the average class score.",
+          "Marking a score invalid necessarily deletes the student's entire record.",
+          "Scores outside 0–100 must be retained unchanged to preserve every original entry."
+        ]
+      },
+      {
+        id: 44,
+        required: 3,
+        q: "Select THREE correct statements about filling missing ages with the median.",
+        options: [
+          "fillna can replace missing ages with a chosen value.",
+          "df[\"age\"].median() computes the median of available numerical ages.",
+          "Using the median can be more robust to extreme ages than using the mean.",
+          "Median imputation replaces every observed age with zero before filling blanks.",
+          "The median is calculated from the largest age in the dataset alone.",
+          "Using fillna with a median automatically deletes rows with known ages.",
+          "Median imputation always produces the exact original value of a missing age.",
+          "The median is more affected by extreme ages than the arithmetic mean."
+        ]
+      },
+      {
+        id: 45,
+        required: 3,
+        q: "Select THREE correct statements about pd.to_datetime(errors=\"coerce\").",
+        options: [
+          "Invalid date strings are converted to NaT.",
+          "Valid date strings are converted to datetime values.",
+          "Invalid dates can be handled without raising parsing errors.",
+          "Invalid date strings are replaced with today's date.",
+          "Valid date strings are converted into text values.",
+          "Invalid dates are replaced with the earliest valid date.",
+          "Missing date values are replaced with the latest valid date.",
+          "Invalid date strings are automatically converted to zero."
+        ]
+      },
+      {
+        id: 46,
+        required: 3,
+        q: "Select THREE correct statements about df.to_csv(\"students_cleaned.csv\", index=False).",
+        options: [
+          "It writes a DataFrame to a CSV file.",
+          "index=False prevents the DataFrame index from being written as an extra CSV column.",
+          "The specified filename is students_cleaned.csv.",
+          "index=False prevents all column headers from being written to the CSV file.",
+          "index=False saves only the first row of the DataFrame to the file.",
+          "index=False prevents the output CSV file from being created on disk.",
+          "index=False automatically removes duplicate rows before saving the CSV file.",
+          "index=False converts every missing value to the text 'Unknown' before export."
+        ]
+      },
+      {
+        id: 47,
+        required: 3,
+        q: "Select THREE correct statements about df[\"country\"].str.title().",
+        options: [
+          "It converts words to title case.",
+          "It can turn \"pakistan\" into \"Pakistan\".",
+          "It helps standardize capitalization in country names.",
+          "It translates country names from other languages into English automatically.",
+          "It replaces every missing country value with the most common country.",
+          "str.title() removes the country column after standardizing its text values.",
+          "str.title() sorts the DataFrame rows by the population of each country.",
+          "str.title() converts all letters in country names to uppercase characters."
+        ]
+      },
+      {
+        id: 48,
+        required: 3,
+        q: "Select THREE correct statements about filling missing department values with \"Unknown\".",
+        options: [
+          "It retains rows that have missing department information.",
+          "It explicitly indicates that a department is unspecified.",
+          "It replaces missing entries with the text \"Unknown\".",
+          "it reveals the true department of every missing entry.",
+          "it removes all rows that originally lacked department values.",
+          "It replaces every known department with the same text.",
+          "Filling with 'Unknown' guarantees that no other column contains missing values.",
+          "Filling with 'Unknown' changes all department names into numeric category codes."
+        ]
+      },
+      {
+        id: 49,
+        required: 3,
+        q: "Select THREE correct statements about checking whether an email contains \"@\".",
+        options: [
+          "An email containing \"@\" can still be invalid.",
+          "The presence of \"@\" alone does not prove a mailbox exists.",
+          "A complete email validation procedure needs additional checks.",
+          "Any email containing an '@' symbol is guaranteed to be correctly formatted.",
+          "Checking for '@' verifies that the email account is active and accessible.",
+          "Checking for '@' confirms the identity of the person owning the address.",
+          "Valid email addresses never contain the '@' symbol in their text.",
+          "Checking for '@' guarantees that the address has a valid domain name."
+        ]
+      },
+      {
+        id: 50,
+        required: 3,
+        q: "Select THREE correct statements about data provenance.",
+        options: [
+          "Data provenance describes where data originated.",
+          "It can record transformations applied to data.",
+          "It helps users trace how a dataset was produced.",
+          "Data provenance records only the total number of rows in a dataset.",
+          "It is limited to the names of columns in a table.",
+          "Data provenance measures only the accuracy of a predictive model.",
+          "It identifies only the chart types produced during analysis.",
+          "It automatically verifies that every original record is correct."
+        ]
+      }
+    ];
+
+    // Normalize bank with explicit isCorrect flags
+    const QUESTION_BANK = RAW_QUESTIONS.map(item => ({
+      id: item.id,
+      required: item.required,
+      question: item.q,
+      options: item.options.map((text, idx) => ({
+        id: idx,
+        text: text,
+        isCorrect: idx < item.required
+      }))
+    }));
+
+    // =========================================================================
+    // STATE MANAGEMENT
+    // =========================================================================
+    let currentMode = 'all';
+    let quizQueue = [];
+    let currentIndex = 0;
+    let selectedOptionIds = new Set();
+    let isQuestionAnswered = false;
+    let score = 0;
+    let streak = 0;
+    let maxStreak = 0;
+    let sessionHistory = []; // { questionObj, shuffledOptions, userSelectedIds, isCorrect }
+    let missedQuestionIds = new Set();
+    let timerInterval = null;
+    let timeLeft = 30;
+    let currentReviewFilter = 'all';
+
+    // Quizizz-inspired distinct accent borders for option cards
+    const OPTION_COLORS = [
+      'border-indigo-200 hover:border-[#6C5CE7] hover:bg-indigo-50/40',
+      'border-sky-200 hover:border-sky-500 hover:bg-sky-50/40',
+      'border-amber-200 hover:border-amber-500 hover:bg-amber-50/40',
+      'border-purple-200 hover:border-purple-500 hover:bg-purple-50/40',
+      'border-teal-200 hover:border-teal-500 hover:bg-teal-50/40',
+      'border-rose-200 hover:border-rose-500 hover:bg-rose-50/40',
+      'border-emerald-200 hover:border-emerald-500 hover:bg-emerald-50/40',
+      'border-orange-200 hover:border-orange-500 hover:bg-orange-50/40'
+    ];
+
+    // Utility: Fisher-Yates shuffle
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    // =========================================================================
+    // NAVIGATION & SCREENS
+    // =========================================================================
+    function showScreen(screenName) {
+      stopTimer();
+      ['home', 'quiz', 'results', 'study'].forEach(s => {
+        document.getElementById(`screen-${s}`).classList.add('hidden');
+      });
+      document.getElementById(`screen-${screenName}`).classList.remove('hidden');
+
+      // Update header active button
+      const quizBtn = document.getElementById('nav-quiz-btn');
+      const studyBtn = document.getElementById('nav-study-btn');
+      if (screenName === 'study') {
+        studyBtn.className = 'px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all bg-white text-[#6C5CE7] shadow-sm';
+        quizBtn.className = 'px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all text-slate-600 hover:text-slate-900';
+        renderStudyList();
+      } else {
+        quizBtn.className = 'px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all bg-white text-[#6C5CE7] shadow-sm';
+        studyBtn.className = 'px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all text-slate-600 hover:text-slate-900';
+      }
+
+      if (screenName === 'home') {
+        updateMistakesCardUI();
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function updateMistakesCardUI() {
+      const btn = document.getElementById('home-mistakes-btn');
+      const badge = document.getElementById('mistakes-count-badge');
+      const cta = document.getElementById('mistakes-cta-text');
+      const count = missedQuestionIds.size;
+
+      badge.textContent = `${count} ${count === 1 ? 'ошибка' : (count >= 2 && count <= 4 ? 'ошибки' : 'ошибок')}`;
+      if (count > 0) {
+        btn.disabled = false;
+        btn.classList.remove('opacity-60', 'cursor-not-allowed');
+        cta.textContent = 'Исправить ошибки';
+      } else {
+        btn.disabled = true;
+        btn.classList.add('opacity-60', 'cursor-not-allowed');
+        cta.textContent = 'Ошибок пока нет';
+      }
+    }
+
+    // =========================================================================
+    // START QUIZ LOGIC
+    // =========================================================================
+    function startQuiz(mode) {
+      currentMode = mode;
+      const shouldShuffleQuestions = document.getElementById('setting-shuffle-questions').checked;
+
+      let pool = [];
+      let modeTitle = 'Все 50 вопросов';
+
+      if (mode === 'all') {
+        pool = [...QUESTION_BANK];
+        modeTitle = 'Все 50 вопросов';
+      } else if (mode === 'type1') {
+        pool = QUESTION_BANK.filter(q => q.required === 1);
+        modeTitle = 'Часть 1: Один ответ (20)';
+      } else if (mode === 'type2') {
+        pool = QUESTION_BANK.filter(q => q.required === 2);
+        modeTitle = 'Часть 2: Два ответа (15)';
+      } else if (mode === 'type3') {
+        pool = QUESTION_BANK.filter(q => q.required === 3);
+        modeTitle = 'Часть 3: Три ответа (15)';
+      } else if (mode === 'quick15') {
+        pool = shuffleArray(QUESTION_BANK).slice(0, 15);
+        modeTitle = 'Быстрый раунд (15)';
+      } else if (mode === 'mistakes') {
+        pool = QUESTION_BANK.filter(q => missedQuestionIds.has(q.id));
+        if (pool.length === 0) return;
+        modeTitle = `Работа над ошибками (${pool.length})`;
+      }
+
+      if (shouldShuffleQuestions && mode !== 'quick15') {
+        pool = shuffleArray(pool);
+      }
+
+      // Prepare queue with shuffled options for every question
+      quizQueue = pool.map(q => ({
+        ...q,
+        shuffledOptions: shuffleArray(q.options)
+      }));
+
+      currentIndex = 0;
+      score = 0;
+      streak = 0;
+      maxStreak = 0;
+      sessionHistory = new Array(quizQueue.length).fill(null);
+
+      document.getElementById('hud-mode-title').textContent = modeTitle;
+      document.getElementById('hud-total-q').textContent = quizQueue.length;
+      updateHUD();
+
+      showScreen('quiz');
+      renderQuestion();
+    }
+
+    function restartSameMode() {
+      startQuiz(currentMode);
+    }
+
+    // =========================================================================
+    // RENDER CURRENT QUESTION
+    // =========================================================================
+    function renderQuestion() {
+      stopTimer();
+      const currentQ = quizQueue[currentIndex];
+      const existingRecord = sessionHistory[currentIndex];
+
+      selectedOptionIds = existingRecord ? new Set(existingRecord.userSelectedIds) : new Set();
+      isQuestionAnswered = Boolean(existingRecord);
+
+      document.getElementById('hud-current-idx').textContent = currentIndex + 1;
+      document.getElementById('q-id-badge').textContent = `Вопрос #${currentQ.id}`;
+
+      // Configure Type Badge
+      const typeBadge = document.getElementById('q-type-badge');
+      if (currentQ.required === 1) {
+        typeBadge.textContent = '1 правильный ответ';
+        typeBadge.className = 'px-3 py-1 rounded-lg font-bold text-xs bg-emerald-50 text-emerald-700 border border-emerald-200';
+      } else if (currentQ.required === 2) {
+        typeBadge.textContent = 'Выберите 2 правильных ответа';
+        typeBadge.className = 'px-3 py-1 rounded-lg font-bold text-xs bg-blue-50 text-blue-700 border border-blue-200';
+      } else {
+        typeBadge.textContent = 'Выберите 3 правильных ответа';
+        typeBadge.className = 'px-3 py-1 rounded-lg font-bold text-xs bg-purple-50 text-purple-700 border border-purple-200';
+      }
+
+      document.getElementById('q-text').textContent = currentQ.question;
+
+      renderJumpBar();
+      renderOptions();
+      updateActionControls();
+
+      // Start timer if enabled and not yet answered
+      const timerEnabled = document.getElementById('setting-timer').checked;
+      const timerPill = document.getElementById('hud-timer-pill');
+      if (timerEnabled && !isQuestionAnswered) {
+        timerPill.classList.remove('hidden');
+        timerPill.classList.add('flex');
+        startTimer(30);
+      } else {
+        timerPill.classList.add('hidden');
+        timerPill.classList.remove('flex');
+      }
+    }
+
+    function renderJumpBar() {
+      const bar = document.getElementById('question-jump-bar');
+      bar.innerHTML = quizQueue.map((q, idx) => {
+        const rec = sessionHistory[idx];
+        let colorClass = 'bg-slate-100 text-slate-500 hover:bg-slate-200';
+        if (idx === currentIndex) {
+          colorClass = 'ring-2 ring-[#6C5CE7] bg-indigo-50 text-[#6C5CE7] font-extrabold';
+        } else if (rec) {
+          colorClass = rec.isCorrect
+            ? 'bg-emerald-500 text-white'
+            : 'bg-rose-500 text-white';
+        }
+        return `
+          <button onclick="jumpToQuestion(${idx})" class="w-7 h-7 rounded-lg text-xs font-bold shrink-0 transition-all ${colorClass}">
+            ${idx + 1}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function jumpToQuestion(idx) {
+      currentIndex = idx;
+      renderQuestion();
+    }
+
+    function renderOptions() {
+      const currentQ = quizQueue[currentIndex];
+      const grid = document.getElementById('q-options-grid');
+
+      grid.innerHTML = currentQ.shuffledOptions.map((opt, idx) => {
+        const isSelected = selectedOptionIds.has(opt.id);
+        const colorStyle = OPTION_COLORS[idx % OPTION_COLORS.length];
+
+        let cardStyle = `bg-white border-2 ${colorStyle} text-slate-700`;
+        let badgeStyle = `bg-slate-100 text-slate-600`;
+        let statusIcon = '';
+
+        if (!isQuestionAnswered) {
+          if (isSelected) {
+            cardStyle = 'bg-indigo-50/90 border-2 border-[#6C5CE7] text-slate-900 ring-2 ring-[#6C5CE7]/20';
+            badgeStyle = 'bg-[#6C5CE7] text-white';
+          }
+        } else {
+          // Answered state styling
+          if (opt.isCorrect && isSelected) {
+            // Rightly selected
+            cardStyle = 'bg-emerald-50 border-2 border-emerald-500 text-emerald-950';
+            badgeStyle = 'bg-emerald-500 text-white';
+            statusIcon = '<span class="ml-auto text-emerald-600 font-extrabold text-sm shrink-0">✓ Верно</span>';
+          } else if (opt.isCorrect && !isSelected) {
+            // Missed correct option
+            cardStyle = 'bg-emerald-50/50 border-2 border-dashed border-emerald-500 text-emerald-900';
+            badgeStyle = 'bg-emerald-500 text-white';
+            statusIcon = '<span class="ml-auto text-emerald-600 font-bold text-xs shrink-0">Нужно было выбрать</span>';
+          } else if (!opt.isCorrect && isSelected) {
+            // Wrongly selected
+            cardStyle = 'bg-rose-50 border-2 border-rose-400 text-rose-950';
+            badgeStyle = 'bg-rose-500 text-white';
+            statusIcon = '<span class="ml-auto text-rose-600 font-extrabold text-sm shrink-0">✕ Ошибка</span>';
+          } else {
+            cardStyle = 'bg-slate-50 border-2 border-slate-200 text-slate-400 opacity-65';
+          }
+        }
+
+        return `
+          <button
+            type="button"
+            onclick="handleOptionClick(${opt.id})"
+            ${isQuestionAnswered ? 'disabled' : ''}
+            class="option-card w-full text-left p-4 rounded-2xl flex items-start gap-3.5 ${cardStyle}"
+          >
+            <span class="w-7 h-7 rounded-lg font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 transition-colors ${badgeStyle}">
+              ${idx + 1}
+            </span>
+            <span class="font-semibold text-sm sm:text-base leading-snug flex-1">${escapeHtml(opt.text)}</span>
+            ${statusIcon}
+          </button>
+        `;
+      }).join('');
+
+      // Update selection counter
+      const counterEl = document.getElementById('q-selection-counter');
+      if (currentQ.required > 1) {
+        counterEl.textContent = `Выбрано: ${selectedOptionIds.size} из ${currentQ.required}`;
+      } else {
+        counterEl.textContent = 'Нажмите на вариант для ответа';
+      }
+    }
+
+    function handleOptionClick(optionId) {
+      if (isQuestionAnswered) return;
+      const currentQ = quizQueue[currentIndex];
+
+      if (currentQ.required === 1) {
+        selectedOptionIds.clear();
+        selectedOptionIds.add(optionId);
+        submitCurrentAnswer();
+        return;
+      }
+
+      // Multi-select toggle
+      if (selectedOptionIds.has(optionId)) {
+        selectedOptionIds.delete(optionId);
+      } else {
+        if (selectedOptionIds.size >= currentQ.required) {
+          // Replace oldest selection or prevent overflow? Let's allow toggling off first or replace last
+          const firstVal = selectedOptionIds.values().next().value;
+          selectedOptionIds.delete(firstVal);
+        }
+        selectedOptionIds.add(optionId);
+      }
+
+      renderOptions();
+      updateActionControls();
+    }
+
+    function updateActionControls() {
+      const currentQ = quizQueue[currentIndex];
+      const submitBtn = document.getElementById('btn-submit-answer');
+      const nextBtn = document.getElementById('btn-next-question');
+      const feedbackBox = document.getElementById('q-feedback-box');
+
+      if (!isQuestionAnswered) {
+        feedbackBox.classList.add('hidden');
+        feedbackBox.classList.remove('flex');
+        nextBtn.classList.add('hidden');
+
+        if (currentQ.required > 1) {
+          submitBtn.classList.remove('hidden');
+          submitBtn.disabled = selectedOptionIds.size !== currentQ.required;
+          submitBtn.textContent = selectedOptionIds.size === currentQ.required
+            ? `Проверить ответ (Enter)`
+            : `Выберите ещё ${currentQ.required - selectedOptionIds.size}`;
+        } else {
+          submitBtn.classList.add('hidden');
+        }
+      } else {
+        submitBtn.classList.add('hidden');
+        nextBtn.classList.remove('hidden');
+        nextBtn.querySelector('span').textContent = (currentIndex === quizQueue.length - 1)
+          ? 'Завершить раунд'
+          : 'Следующий вопрос';
+
+        const rec = sessionHistory[currentIndex];
+        feedbackBox.classList.remove('hidden');
+        feedbackBox.classList.add('flex');
+
+        const icon = document.getElementById('q-feedback-icon');
+        const title = document.getElementById('q-feedback-title');
+        const sub = document.getElementById('q-feedback-sub');
+
+        if (rec.isCorrect) {
+          feedbackBox.className = 'flex flex-1 rounded-2xl p-3.5 items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-900';
+          icon.className = 'w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-500 text-white font-bold text-lg shrink-0';
+          icon.textContent = '✓';
+          title.textContent = 'Верно! Отличная работа';
+          sub.textContent = `+${rec.pointsEarned} очков • Серия: ${streak} 🔥`;
+        } else {
+          feedbackBox.className = 'flex flex-1 rounded-2xl p-3.5 items-center gap-3 bg-rose-50 border border-rose-200 text-rose-900';
+          icon.className = 'w-9 h-9 rounded-xl flex items-center justify-center bg-rose-500 text-white font-bold text-lg shrink-0';
+          icon.textContent = '✕';
+          title.textContent = 'Ошибка! Посмотрите на зеленые варианты';
+          sub.textContent = 'Вопрос добавлен в список «Работа над ошибками»';
+        }
+      }
+    }
+
+    // =========================================================================
+    // SUBMIT & CHECK ANSWER
+    // =========================================================================
+    function submitCurrentAnswer(timedOut = false) {
+      if (isQuestionAnswered) return;
+      stopTimer();
+
+      const currentQ = quizQueue[currentIndex];
+      if (!timedOut && selectedOptionIds.size !== currentQ.required) return;
+
+      isQuestionAnswered = true;
+
+      // Verify if all selected IDs match the correct IDs
+      const correctIds = currentQ.options.filter(o => o.isCorrect).map(o => o.id);
+      const isAllCorrect = !timedOut &&
+        correctIds.length === selectedOptionIds.size &&
+        correctIds.every(id => selectedOptionIds.has(id));
+
+      let pointsEarned = 0;
+      if (isAllCorrect) {
+        streak++;
+        if (streak > maxStreak) maxStreak = streak;
+        pointsEarned = 100 + Math.min(streak * 20, 200);
+        score += pointsEarned;
+        missedQuestionIds.delete(currentQ.id);
+      } else {
+        streak = 0;
+        missedQuestionIds.add(currentQ.id);
+      }
+
+      sessionHistory[currentIndex] = {
+        questionObj: currentQ,
+        userSelectedIds: Array.from(selectedOptionIds),
+        isCorrect: isAllCorrect,
+        pointsEarned
+      };
+
+      updateHUD();
+      renderJumpBar();
+      renderOptions();
+      updateActionControls();
+
+      // Auto-advance if setting enabled and answer is correct
+      const instantNext = document.getElementById('setting-instant-next').checked;
+      if (instantNext && isAllCorrect) {
+        setTimeout(() => {
+          if (isQuestionAnswered && currentIndex < quizQueue.length) {
+            nextQuestion();
+          }
+        }, 750);
+      }
+    }
+
+    function nextQuestion() {
+      if (currentIndex < quizQueue.length - 1) {
+        currentIndex++;
+        renderQuestion();
+      } else {
+        showResultsScreen();
+      }
+    }
+
+    function updateHUD() {
+      document.getElementById('hud-score-val').textContent = score;
+      const streakVal = document.getElementById('hud-streak-val');
+      streakVal.textContent = streak;
+      const pill = document.getElementById('hud-streak-pill');
+      pill.classList.remove('streak-pulse');
+      void pill.offsetWidth;
+      pill.classList.add('streak-pulse');
+    }
+
+    // =========================================================================
+    // TIMER
+    // =========================================================================
+    function startTimer(seconds) {
+      timeLeft = seconds;
+      const timerVal = document.getElementById('hud-timer-val');
+      timerVal.textContent = `${timeLeft}s`;
+
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerVal.textContent = `${timeLeft}s`;
+        if (timeLeft <= 5) {
+          timerVal.classList.add('text-rose-600');
+        } else {
+          timerVal.classList.remove('text-rose-600');
+        }
+        if (timeLeft <= 0) {
+          stopTimer();
+          submitCurrentAnswer(true);
+        }
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    // =========================================================================
+    // RESULTS & REVIEW SCREEN
+    // =========================================================================
+    function showResultsScreen() {
+      stopTimer();
+      const answered = sessionHistory.filter(Boolean);
+      const total = quizQueue.length;
+      const correctCount = answered.filter(r => r.isCorrect).length;
+      const wrongCount = total - correctCount;
+      const accuracy = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+
+      document.getElementById('res-accuracy').textContent = `${accuracy}%`;
+      document.getElementById('res-correct').textContent = correctCount;
+      document.getElementById('res-wrong').textContent = wrongCount;
+      document.getElementById('res-streak').textContent = `${maxStreak} 🔥`;
+
+      const trophy = document.getElementById('res-trophy');
+      const headline = document.getElementById('res-headline');
+      const subline = document.getElementById('res-subline');
+
+      if (accuracy >= 90) {
+        trophy.textContent = '🏆';
+        headline.textContent = 'Блестящий результат!';
+        subline.textContent = 'Вы отлично ориентируетесь в вопросах даже со случайным порядком ответов.';
+      } else if (accuracy >= 70) {
+        trophy.textContent = '🎯';
+        headline.textContent = 'Хорошая подготовка!';
+        subline.textContent = 'Еще пара повторений ошибочных вопросов — и будет 100%.';
+      } else {
+        trophy.textContent = '💪';
+        headline.textContent = 'Хорошее начало!';
+        subline.textContent = 'Нажмите «Проработать ошибки», чтобы закрепить сложные вопросы.';
+      }
+
+      const retryMistakesBtn = document.getElementById('res-retry-mistakes-btn');
+      if (missedQuestionIds.size > 0) {
+        retryMistakesBtn.classList.remove('hidden');
+        retryMistakesBtn.textContent = `🛠️ Проработать ошибки (${missedQuestionIds.size})`;
+      } else {
+        retryMistakesBtn.classList.add('hidden');
+      }
+
+      currentReviewFilter = 'all';
+      filterReview('all');
+      showScreen('results');
+    }
+
+    function filterReview(filterType) {
+      currentReviewFilter = filterType;
+      ['all', 'wrong', 'correct'].forEach(t => {
+        const btn = document.getElementById(`rev-filter-${t}`);
+        if (t === filterType) {
+          btn.className = 'px-3 py-1.5 rounded-lg bg-white text-slate-800 shadow-sm';
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900';
+        }
+      });
+
+      const listEl = document.getElementById('review-list');
+      const items = sessionHistory.filter(Boolean).filter(rec => {
+        if (filterType === 'wrong') return !rec.isCorrect;
+        if (filterType === 'correct') return rec.isCorrect;
+        return true;
+      });
+
+      if (items.length === 0) {
+        listEl.innerHTML = `<div class="text-center py-8 text-slate-400 font-medium text-sm">Нет вопросов в этой категории</div>`;
+        return;
+      }
+
+      listEl.innerHTML = items.map(rec => {
+        const q = rec.questionObj;
+        const userSet = new Set(rec.userSelectedIds);
+        const statusBadge = rec.isCorrect
+          ? `<span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs">✓ Верно</span>`
+          : `<span class="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-800 font-bold text-xs">✕ Ошибка</span>`;
+
+        const optionsHtml = q.shuffledOptions.map(opt => {
+          const picked = userSet.has(opt.id);
+          if (opt.isCorrect) {
+            return `
+              <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 text-xs sm:text-sm font-semibold flex items-center justify-between gap-2">
+                <span>✓ ${escapeHtml(opt.text)}</span>
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-200/70 text-emerald-900 shrink-0">
+                  ${picked ? 'Ваш выбор' : 'Правильный ответ'}
+                </span>
+              </div>
+            `;
+          } else if (picked && !opt.isCorrect) {
+            return `
+              <div class="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs sm:text-sm font-semibold flex items-center justify-between gap-2">
+                <span>✕ ${escapeHtml(opt.text)}</span>
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-rose-200/70 text-rose-900 shrink-0">Вы выбрали ошибочно</span>
+              </div>
+            `;
+          }
+          return '';
+        }).join('');
+
+        return `
+          <div class="p-4 rounded-2xl border border-slate-200/90 bg-slate-50/50 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-bold text-slate-400">Вопрос #${q.id} (${q.required} отв.)</span>
+              ${statusBadge}
+            </div>
+            <div class="font-bold text-slate-800 text-sm sm:text-base">${escapeHtml(q.question)}</div>
+            <div class="space-y-1.5">${optionsHtml}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // STUDY / CHEATSHEET MODE
+    // =========================================================================
+    function renderStudyList() {
+      const searchVal = (document.getElementById('study-search-input').value || '').trim().toLowerCase();
+      const typeFilter = document.getElementById('study-type-filter').value;
+      const onlyCorrect = document.getElementById('study-only-correct').checked;
+      const container = document.getElementById('study-list-container');
+
+      const filtered = QUESTION_BANK.filter(q => {
+        if (typeFilter !== 'all' && String(q.required) !== typeFilter) return false;
+        if (!searchVal) return true;
+        const inQ = q.question.toLowerCase().includes(searchVal);
+        const inOpt = q.options.some(o => o.text.toLowerCase().includes(searchVal));
+        return inQ || inOpt;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="bg-white rounded-2xl p-8 text-center text-slate-400 font-semibold">Ничего не найдено по вашему запросу</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(q => {
+        const optsToShow = onlyCorrect ? q.options.filter(o => o.isCorrect) : q.options;
+        const typeColor = q.required === 1
+          ? 'bg-emerald-50 text-emerald-700'
+          : (q.required === 2 ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700');
+
+        return `
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 quiz-card space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 font-bold text-xs">Вопрос #${q.id}</span>
+              <span class="px-2.5 py-1 rounded-lg font-bold text-xs ${typeColor}">
+                Правильных ответов: ${q.required}
+              </span>
+            </div>
+            <h3 class="font-extrabold text-slate-800 text-base sm:text-lg">${escapeHtml(q.question)}</h3>
+            <div class="space-y-2 pt-1">
+              ${optsToShow.map(o => o.isCorrect ? `
+                <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 font-semibold text-sm flex items-start gap-2.5">
+                  <span class="text-emerald-600 font-extrabold">✓</span>
+                  <span>${escapeHtml(o.text)}</span>
+                </div>
+              ` : `
+                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-slate-500 text-xs sm:text-sm flex items-start gap-2.5">
+                  <span class="text-slate-400">•</span>
+                  <span>${escapeHtml(o.text)}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // KEYBOARD SHORTCUTS (1-8 to pick option, Enter/Space to submit/advance)
+    // =========================================================================
+    window.addEventListener('keydown', (e) => {
+      const quizScreenVisible = !document.getElementById('screen-quiz').classList.contains('hidden');
+      if (!quizScreenVisible) return;
+
+      const currentQ = quizQueue[currentIndex];
+      if (!currentQ) return;
+
+      // Number keys 1-8
+      if (e.key >= '1' && e.key <= '8') {
+        const idx = parseInt(e.key, 10) - 1;
+        if (idx < currentQ.shuffledOptions.length && !isQuestionAnswered) {
+          e.preventDefault();
+          handleOptionClick(currentQ.shuffledOptions[idx].id);
+        }
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (!isQuestionAnswered) {
+          if (currentQ.required > 1 && selectedOptionIds.size === currentQ.required) {
+            submitCurrentAnswer();
+          }
+        } else {
+          nextQuestion();
+        }
+      }
+    });
+  </script>
+</body>
+</html>
